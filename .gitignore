@@ -1,0 +1,8 @@
+mybotenv/
+.bash_history
+.bashrc
+__pycache__/
+*.csv
+*.json
+seen_leads.json
+seen_leads_backup.json
