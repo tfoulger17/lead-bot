@@ -507,7 +507,7 @@ async def run_now(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #"tfoulger17@gmail.com",
     #"Test Email",
     #"Your bot is working 🚀"
-)
+#)
 
 app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
