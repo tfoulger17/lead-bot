@@ -503,10 +503,10 @@ async def auto_run(context: ContextTypes.DEFAULT_TYPE):
 async def run_now(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await auto_run(context)
 
-send_email(
-    "tfoulger17@gmail.com",
-    "Test Email",
-    "Your bot is working 🚀"
+#send_email(
+    #"tfoulger17@gmail.com",
+    #"Test Email",
+    #"Your bot is working 🚀"
 )
 
 app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
