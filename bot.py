@@ -520,6 +520,6 @@ app.add_handler(CommandHandler("leads", leads))
 app.add_handler(CommandHandler("id", get_id))
 app.add_handler(CommandHandler("runnow", run_now))
 
-app.job_queue.run_daily(auto_run, time=time(hour=20, minute=22))
+#app.job_queue.run_daily(auto_run, time=time(hour=20, minute=22))
 
 app.run_polling()
