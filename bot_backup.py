@@ -5,11 +5,10 @@ import requests
 import smtplib
 from email.mime.text import MIMEText
 
-EMAIL_USER = os.environ["EMAIL_USER"]
-EMAIL_PASS = os.environ["EMAIL_PASS"]
-TELEGRAM_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
-
+EMAIL_USER = "elite.ecojunk@gmail.com"
+EMAIL_PASS = "ntnbeudscykcmcuz"
 MY_PHONE = "(602) 877-4288"
+
 SEEN_FILE = "seen_leads.json"
 
 import re
@@ -90,23 +89,15 @@ def extract_emails_from_website(url):
         return []
 
 def send_email(to_email, subject, body):
-    url = "https://api.resend.com/emails"
+    msg = MIMEText(body)
+    msg["Subject"] = subject
+    msg["From"] = EMAIL_USER
+    msg["To"] = to_email
 
-    headers = {
-        "Authorization": f"Bearer {os.environ['RESEND_API_KEY']}",
-        "Content-Type": "application/json"
-    }
-
-    data = {
-        "from": "TonyAI <onboarding@resend.dev>",
-        "to": [to_email],
-        "subject": subject,
-        "html": f"<p>{body}</p>"
-    }
-
-    response = requests.post(url, json=data, headers=headers)
-
-    print(response.text)
+    with smtplib.SMTP("smtp.gmail.com", 587) as server:
+        server.starttls()
+        server.login(EMAIL_USER, EMAIL_PASS)
+        server.send_message(msg)
 
 def load_seen():
     if os.path.exists(SEEN_FILE):
@@ -122,6 +113,8 @@ seen_leads = load_seen()
 from openai import OpenAI
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+
+TELEGRAM_TOKEN = "8664424938:AAH4HvauA3XqVBefzyDB04-1gPYzK9kjxPk"
 
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
@@ -511,11 +504,11 @@ async def auto_run(context: ContextTypes.DEFAULT_TYPE):
 async def run_now(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await auto_run(context)
 
-#send_email(
-    #"tfoulger17@gmail.com",
-    #"Test Email",
-    #"Your bot is working 🚀"
-#)
+send_email(
+    "tfoulger17@gmail.com",
+    "Test Email",
+    "Your bot is working 🚀"
+)
 
 app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
@@ -528,6 +521,6 @@ app.add_handler(CommandHandler("leads", leads))
 app.add_handler(CommandHandler("id", get_id))
 app.add_handler(CommandHandler("runnow", run_now))
 
-#app.job_queue.run_daily(auto_run, time=time(hour=20, minute=22))
+app.job_queue.run_daily(auto_run, time=time(hour=20, minute=22))
 
 app.run_polling()
