@@ -399,10 +399,10 @@ Phone: {MY_PHONE}
 """
 
         try:
-        send_email(email, subject, body)
-        sent_count += 1
-    except Exception as e:
-        print(f"Email failed for {name}: {e}")
+            send_email(email, subject, body)
+            sent_count += 1
+        except Exception as e:
+            print(f"Email failed for {name}: {e}")
 
 del pending_tasks[user_id]
 await update.message.reply_text(f"Done. Sent {sent_count} emails.")
