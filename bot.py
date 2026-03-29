@@ -399,6 +399,9 @@ Phone: {MY_PHONE}
 """
 
         try:
+            await update.message.reply_text(
+                f"TO: {email}\n\nSUBJECT: {subject}\n\nBODY:\n{body}"
+        )
             send_email(email, subject, body)
             sent_count += 1
         except Exception as e:
