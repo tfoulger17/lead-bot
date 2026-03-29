@@ -11,6 +11,7 @@ TELEGRAM_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 
 MY_PHONE = "(602) 877-4288"
 SEEN_FILE = "seen_leads.json"
+pending_leads = []
 
 import re
 
@@ -398,14 +399,13 @@ Phone: {MY_PHONE}
 """
 
         try:
-            send_email(email, subject, body)
-            sent_count += 1
-        except Exception as e:
-            print(f"Email failed for {name}: {e}")
+        send_email(email, subject, body)
+        sent_count += 1
+    except Exception as e:
+        print(f"Email failed for {name}: {e}")
 
-    await update.message.reply_text(f"Sent {sent_count} test emails 🚀")
-
-    del pending_tasks[user_id]
+del pending_tasks[user_id]
+await update.message.reply_text(f"Done. Sent {sent_count} emails.")
 
 async def get_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(str(update.effective_user.id))
