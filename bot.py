@@ -404,8 +404,8 @@ Phone: {MY_PHONE}
         except Exception as e:
             print(f"Email failed for {name}: {e}")
 
-del pending_tasks[user_id]
-await update.message.reply_text(f"Done. Sent {sent_count} emails.")
+    del pending_tasks[user_id]
+    await update.message.reply_text(f"Done. Sent {sent_count} emails.")
 
 async def get_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(str(update.effective_user.id))
