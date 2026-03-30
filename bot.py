@@ -139,6 +139,208 @@ def choose_best_email(emails):
 
     return None
 
+def classify_lead_type(lead):
+    text = " ".join([
+        str(lead.get("name", "")),
+        str(lead.get("type", "")),
+        str(lead.get("website", "")),
+    ]).lower()
+
+    if any(x in text for x in ["luxury", "high-rise", "residences", "elite"]):
+        return "luxury_apartment"
+
+    if any(x in text for x in ["apartments", "apartment", "multifamily", "apts"]):
+        return "apartment"
+
+    if any(x in text for x in ["property management", "management", "hoa", "community association"]):
+        return "property_manager"
+
+    if any(x in text for x in ["shopping center", "retail", "commercial", "office park"]):
+        return "commercial"
+
+    if any(x in text for x in ["warehouse", "industrial", "distribution", "logistics"]):
+        return "warehouse"
+
+    if any(x in text for x in ["restaurant", "grill", "cafe", "burger", "pizza", "kitchen", "red robin"]):
+        return "restaurant"
+
+    return "general"
+
+def build_outreach_message(lead):
+    lead_type = classify_lead_type(lead)
+
+    name = lead.get("name", "there")
+    address = lead.get("address", "")
+
+    if lead_type == "luxury_apartment":
+        subject = f"Valet trash + property support for {name}"
+        body = f"""Hi {name} team,
+
+This is Tony with Elite EcoJunk Removal.
+
+We help apartment communities in the Phoenix area with services that improve resident experience and help properties stay cleaner and more organized, including:
+• valet trash
+• bulk item pickup
+• overflow cleanup
+• common-area junk removal
+
+For luxury communities especially, we know presentation, cleanliness, and fast response matter.
+
+I came across your property at:
+{address}
+
+Would you be open to a quick conversation this week to see if we could support your team?
+
+Best,
+Tony
+Elite EcoJunk Removal
+Phone: {MY_PHONE}
+"""
+        return subject, body
+
+    if lead_type == "apartment":
+        subject = f"Bulk trash support for {name}"
+        body = f"""Hi {name} team,
+
+This is Tony with Elite EcoJunk Removal.
+
+We help apartment communities with:
+• bulk trash removal
+• overflow cleanup
+• move-out debris removal
+• faster unit turns
+• valet trash support
+
+I came across your property at:
+{address}
+
+A lot of the teams we work with needed help reducing dumpster overflow and taking pressure off maintenance staff.
+
+Would you be open to a quick call this week?
+
+Best,
+Tony
+Elite EcoJunk Removal
+Phone: {MY_PHONE}
+"""
+        return subject, body
+
+    if lead_type == "property_manager":
+        subject = f"Bulk trash + cleanout support for {name}"
+        body = f"""Hi {name} team,
+
+This is Tony with Elite EcoJunk Removal.
+
+We support property managers and management groups throughout the Phoenix area with:
+• bulk trash removal
+• estate cleanouts
+• move-out debris removal
+• overflow cleanup
+• recurring site support
+
+We know property management teams often need vendors who can move quickly and help across multiple properties.
+
+Would you be open to a quick conversation this week to see if we could be a resource?
+
+Best,
+Tony
+Elite EcoJunk Removal
+Phone: {MY_PHONE}
+"""
+        return subject, body
+
+    if lead_type == "commercial":
+        subject = f"Overflow cleanup support for {name}"
+        body = f"""Hi {name} team,
+
+This is Tony with Elite EcoJunk Removal.
+
+We help commercial properties and retail centers with:
+• dumpster overflow cleanup
+• illegal dumping removal
+• bulk item hauling
+• recurring exterior cleanup
+• tenant move-out debris removal
+
+I came across your property at:
+{address}
+
+If your team ever needs fast support to keep the property clean and presentable, I’d love to connect.
+
+Best,
+Tony
+Elite EcoJunk Removal
+Phone: {MY_PHONE}
+"""
+        return subject, body
+
+    if lead_type == "warehouse":
+        subject = f"Warehouse cleanup support for {name}"
+        body = f"""Hi {name} team,
+
+This is Tony with Elite EcoJunk Removal.
+
+We help warehouse and industrial facilities with:
+• pallet and bulk debris hauling
+• dock-area cleanup
+• overflow removal
+• abandoned material removal
+• recurring junk and debris pickups
+
+For facilities with a lot of movement and turnover, quick cleanup support can save a lot of headaches.
+
+Would you be open to a quick conversation this week?
+
+Best,
+Tony
+Elite EcoJunk Removal
+Phone: {MY_PHONE}
+"""
+        return subject, body
+
+    if lead_type == "restaurant":
+        subject = f"Overflow and bulk pickup support for {name}"
+        body = f"""Hi {name} team,
+
+This is Tony with Elite EcoJunk Removal.
+
+We help restaurants and food-service locations with:
+• dumpster overflow cleanup
+• bulk item hauling
+• back-of-house junk removal
+• quick pickups that help keep service areas clean
+
+I came across your location at:
+{address}
+
+If your team ever needs fast overflow or cleanup support, I’d love to connect.
+
+Best,
+Tony
+Elite EcoJunk Removal
+Phone: {MY_PHONE}
+"""
+        return subject, body
+
+    subject = f"Quick question about {name}"
+    body = f"""Hi {name} team,
+
+This is Tony with Elite EcoJunk Removal.
+
+We help properties and businesses throughout the Phoenix area with bulk trash removal, overflow cleanup, cleanouts, and junk hauling.
+
+I came across your location at:
+{address}
+
+Would you be open to a quick conversation this week?
+
+Best,
+Tony
+Elite EcoJunk Removal
+Phone: {MY_PHONE}
+"""
+    return subject, body
+
 def extract_emails_from_website(url):
     try:
         headers = {
@@ -428,6 +630,8 @@ async def leads(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "email": best_email if best_email else None,
             }
 
+            lead["lead_type"] = classify_lead_type(lead)
+
             lead["score"] = score_lead(lead)
             lead["priority"] = lead_priority_label(lead["score"])
 
@@ -513,28 +717,7 @@ async def approve(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not email:
             continue
 
-        subject = f"Quick question about {name}"
-
-        body = f"""Hi {name} team,
-
-This is Tony with Elite EcoJunk Removal. Hope you're doing well!
-
-We help apartment communities and property management teams with bulk trash removal, cleanouts, and overflow cleanup throughout the Phoenix area.
-
-I came across your property and wanted to reach out because a lot of the teams we work with needed help with:
-• dumpster overflow and bulk item buildup
-• faster unit turns after move-outs
-• reducing extra strain on maintenance staff
-
-I'd love to see if we could support your property or management team in a similar way.
-
-Would you be open to a quick call this week?
-
-Best,
-Tony
-Elite EcoJunk Removal
-Phone: {MY_PHONE}
-"""
+        subject, body = build_outreach_message(lead)
 
         try:
             await update.message.reply_text(
