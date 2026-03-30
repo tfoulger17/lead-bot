@@ -403,7 +403,7 @@ async def leads(update: Update, context: ContextTypes.DEFAULT_TYPE):
             address = details.get("formattedAddress", "N/A").strip().lower()
             lead_key = f"{name}|{address}"
 
-            if lead_key in seen_leads or lead_key in batch_seen: > 20:
+            if lead_key in seen_leads or lead_key in batch_seen:
                 continue
 
             website = details.get("websiteUri", "N/A")
