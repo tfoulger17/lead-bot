@@ -15,6 +15,81 @@ pending_leads = []
 
 import re
 
+BIG_MANAGEMENT_COMPANIES = [
+    "greystar",
+    "mark-taylor",
+    "mark taylor",
+    "avenue5",
+    "rpm living",
+    "camden",
+    "lincoln property",
+    "asset living",
+    "bh management",
+    "rangewater",
+    "equity residential",
+    "cushman",
+]
+
+OVERFLOW_KEYWORDS = [
+    "warehouse",
+    "distribution",
+    "industrial",
+    "restaurant",
+    "retail",
+    "shopping center",
+    "commercial",
+    "storage",
+    "self storage",
+    "logistics",
+    "facility",
+    "facilities",
+]
+
+def is_big_management_company(lead):
+    text = " ".join([
+        str(lead.get("name", "")),
+        str(lead.get("website", "")),
+        str(lead.get("email", "")),
+    ]).lower()
+
+    return any(company in text for company in BIG_MANAGEMENT_COMPANIES)
+
+def has_high_overflow_potential(lead):
+    text = " ".join([
+        str(lead.get("name", "")),
+        str(lead.get("type", "")),
+        str(lead.get("website", "")),
+    ]).lower()
+
+    return any(word in text for word in OVERFLOW_KEYWORDS)
+
+def score_lead(lead):
+    score = 5
+    email = (lead.get("email") or "").lower()
+
+    if email:
+        if any(k in email for k in ["manager", "leasing", "office", "admin", "operations", "regional"]):
+            score += 2
+        elif any(k in email for k in ["info", "contact", "hello"]):
+            score -= 1
+    else:
+        score -= 3
+
+    if has_high_overflow_potential(lead):
+        score += 2
+
+    if is_big_management_company(lead):
+        score -= 3
+
+    return score
+
+def lead_priority_label(score):
+    if score >= 7:
+        return "Great"
+    if score >= 4:
+        return "Good"
+    return "Low"
+
 def choose_best_email(emails):
     if not emails:
         return None
@@ -319,7 +394,8 @@ async def leads(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "type": details.get("primaryType", "N/A"),
                 "email": best_email if best_email else None,
             }
-
+            lead["score"] = score_lead(lead)
+            lead["priority"] = lead_priority_label(lead["score"])
             if lead["email"] and is_good_email(lead["email"]):
                 new_leads.append(lead)
                 seen_leads.add(lead_key)
@@ -330,6 +406,7 @@ async def leads(update: Update, context: ContextTypes.DEFAULT_TYPE):
         save_seen(seen_leads)
 
         leads = new_leads
+        leads.sort(key=lambda x: x["score"], reverse=True)
 
         if not leads:
             await update.message.reply_text(f"DEBUG: {len(new_leads)} leads after filtering")
@@ -350,6 +427,7 @@ async def leads(update: Update, context: ContextTypes.DEFAULT_TYPE):
         for i, lead in enumerate(leads[:10], start=1):
             preview_lines.append(
                 f"{i}. {lead['name']}\n"
+                f"Priority: {lead['priority']} | Score: {lead['score']}\n"
                 f"Address: {lead['address']}\n"
                 f"Phone: {lead['phone']}\n"
                 f"Website: {lead['website']}\n"
