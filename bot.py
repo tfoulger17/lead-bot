@@ -258,7 +258,7 @@ def is_good_email(email):
     email = email.lower()
 
     bad = ["noreply", "support", "info", "help", "privacy", "legal"]
-    good = ["manager", "leasing", "office", "admin", "team"]
+    good = ["manager", "leasing", "office", "admin", "team", "info"]
 
     if any(b in email for b in bad):
         return False
@@ -332,7 +332,7 @@ async def leads(update: Update, context: ContextTypes.DEFAULT_TYPE):
         leads = new_leads
 
         if not leads:
-            await update.message.reply_text("No NEW leads found.")
+            await update.message.reply_text(f"DEBUG: {len(new_leads)} leads after filtering")
             return
 
         user_id = update.effective_user.id
