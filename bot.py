@@ -380,14 +380,20 @@ async def approve(update: Update, context: ContextTypes.DEFAULT_TYPE):
     task = pending_tasks[user_id]
     leads = task["data"]
 
-    await update.message.reply_text("✅ Approved. Sending test emails now...")
+    if not leads:
+        del pending_tasks[user_id]
+        await update.message.reply_text("Nothing pending to approve.")
+        return
+
+    batch = leads[:10]
+    remaining = leads[10:]
+
+    await update.message.reply_text(f"Approved. Sending {len(batch)} emails now...")
 
     sent_count = 0
 
-    for lead in leads[:5]:
+    for lead in batch:
         name = lead.get("name", "there")
-        address = lead.get("address", "")
-        phone = lead.get("phone", "N/A")
         email = lead.get("email")
 
         if not email:
@@ -399,17 +405,14 @@ async def approve(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 This is Tony with Elite EcoJunk Removal. Hope you're doing well!
 
-We help apartment communities and property management teams with bulk trash removal, cleanouts, and valet trash services throughout the Phoenix area.
+We help apartment communities and property management teams with bulk trash removal, cleanouts, and overflow cleanup throughout the Phoenix area.
 
-I came across your property at:
-{address}
-
-A lot of the teams we work with needed help with:
+I came across your property and wanted to reach out because a lot of the teams we work with needed help with:
 • dumpster overflow and bulk item buildup
 • faster unit turns after move-outs
 • reducing extra strain on maintenance staff
 
-I’d love to see if we could support your property or management team in a similar way.
+I'd love to see if we could support your property or management team in a similar way.
 
 Would you be open to a quick call this week?
 
@@ -422,14 +425,20 @@ Phone: {MY_PHONE}
         try:
             await update.message.reply_text(
                 f"TO: {email}\n\nSUBJECT: {subject}\n\nBODY:\n{body}"
-        )
+            )
             send_email(email, subject, body)
             sent_count += 1
         except Exception as e:
             print(f"Email failed for {name}: {e}")
 
-    del pending_tasks[user_id]
-    await update.message.reply_text(f"Done. Sent {sent_count} emails.")
+    if remaining:
+        pending_tasks[user_id]["data"] = remaining
+        await update.message.reply_text(
+            f"Done. Sent {sent_count} emails.\n{len(remaining)} leads still pending.\nReply /approve to send the next batch."
+        )
+    else:
+        del pending_tasks[user_id]
+        await update.message.reply_text(f"Done. Sent {sent_count} emails.\nNo leads remaining.")
 
 async def get_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(str(update.effective_user.id))
