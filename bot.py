@@ -332,14 +332,25 @@ def is_good_email(email):
 
     email = email.lower()
 
-    bad = ["noreply", "no-reply", "donotreply", "privacy", "legal"]
-    good = ["manager", "leasing", "office", "admin", "team", "info", "contact"]
+    bad_keywords = [
+        "noreply",
+        "no-reply",
+        "donotreply",
+        "privacy",
+        "legal",
+        "sentry",
+        "track",
+        "analytics",
+        "support@stripe",
+        "mailer",
+    ]
 
-    if any(b in email for b in bad):
+    if any(b in email for b in bad_keywords):
         return False
 
-    if any(g in email for g in good):
-        return True
+    # must look like a real domain email
+    if "." not in email.split("@")[-1]:
+        return False
 
     return True
 
