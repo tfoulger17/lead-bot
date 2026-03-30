@@ -368,6 +368,9 @@ async def leads(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"apartment complexes {prompt}",
             f"multifamily {prompt}",
             f"property management {prompt}",
+            f"hoa management {prompt}",
+            f"homeowners association management {prompt}",
+            f"commercial property management {prompt}",
         ]
 
         await update.message.reply_text(f"Running {len(queries)} searches for: {prompt}")
@@ -387,6 +390,7 @@ async def leads(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
 
         new_leads = []
+        batch_seen = set()
 
         for place in all_places[:200]:
             place_id = place.get("id")
@@ -399,7 +403,7 @@ async def leads(update: Update, context: ContextTypes.DEFAULT_TYPE):
             address = details.get("formattedAddress", "N/A").strip().lower()
             lead_key = f"{name}|{address}"
 
-            if lead_key in seen_leads and len(new_leads) > 20:
+            if lead_key in seen_leads or lead_key in batch_seen: > 20:
                 continue
 
             website = details.get("websiteUri", "N/A")
@@ -430,6 +434,7 @@ async def leads(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if lead["email"]:
                 new_leads.append(lead)
                 seen_leads.add(lead_key)
+                batch_seen.add(lead_key)
 
             if len(new_leads) >= 100:
                 break
