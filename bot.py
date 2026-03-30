@@ -362,15 +362,33 @@ async def leads(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     try:
-        raw_places = search_places(prompt)
+        queries = [
+            prompt,
+            f"apartment communities {prompt}",
+            f"apartment complexes {prompt}",
+            f"multifamily {prompt}",
+            f"property management {prompt}",
+        ]
 
-        if not raw_places:
+        await update.message.reply_text(f"Running {len(queries)} searches for: {prompt}")
+
+        all_places = []
+
+        for q in queries:
+            try:
+                results = search_places(q)
+                if results:
+                    all_places.extend(results)
+            except Exception as e:
+                print(f"Search failed for {q}: {e}")
+
+        if not all_places:
             await update.message.reply_text("No leads found.")
             return
 
         new_leads = []
 
-        for place in raw_places[:50]:
+        for place in all_places[:200]:
             place_id = place.get("id")
             if not place_id:
                 continue
@@ -405,9 +423,11 @@ async def leads(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "type": details.get("primaryType", "N/A"),
                 "email": best_email if best_email else None,
             }
+
             lead["score"] = score_lead(lead)
             lead["priority"] = lead_priority_label(lead["score"])
-            if lead["email"] and is_good_email(lead["email"]):
+
+            if lead["email"]:
                 new_leads.append(lead)
                 seen_leads.add(lead_key)
 
@@ -420,7 +440,7 @@ async def leads(update: Update, context: ContextTypes.DEFAULT_TYPE):
         leads.sort(key=lambda x: x["score"], reverse=True)
 
         if not leads:
-            await update.message.reply_text(f"DEBUG: {len(new_leads)} leads after filtering")
+            await update.message.reply_text("No leads found.")
             return
 
         user_id = update.effective_user.id
