@@ -99,7 +99,7 @@ def send_email(to_email, subject, body):
     }
 
     data = {
-        "from": "TonyAI <onboarding@resend.dev>",
+        "from": "Tony @ Elite EcoJunk <tony@elite-ecojunk.com>",
         "to": [to_email],
         "subject": subject,
         "html": f"<p>{body}</p>"
