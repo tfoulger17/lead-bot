@@ -251,6 +251,23 @@ async def improve(update: Update, context: ContextTypes.DEFAULT_TYPE):
     response = ask_model(f"How can I improve this: {prompt}")
     await update.message.reply_text(response[:4000])
 
+def is_good_email(email):
+    if not email:
+        return False
+
+    email = email.lower()
+
+    bad = ["noreply", "support", "info", "help", "privacy", "legal"]
+    good = ["manager", "leasing", "office", "admin", "team"]
+
+    if any(b in email for b in bad):
+        return False
+
+    if any(g in email for g in good):
+        return True
+
+    return False
+
 async def leads(update: Update, context: ContextTypes.DEFAULT_TYPE):
     prompt = " ".join(context.args).strip()
 
@@ -300,11 +317,12 @@ async def leads(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "website": website,
                 "maps": details.get("googleMapsUri", "N/A"),
                 "type": details.get("primaryType", "N/A"),
-                "email": best_email if best_email else EMAIL_USER,
+                "email": best_email if best_email else None,
             }
 
-            new_leads.append(lead)
-            seen_leads.add(lead_key)
+            if lead["email"] and is_good_email(lead["email"]):
+                new_leads.append(lead)
+                seen_leads.add(lead_key)
 
             if len(new_leads) >= 100:
                 break
@@ -370,7 +388,10 @@ async def approve(update: Update, context: ContextTypes.DEFAULT_TYPE):
         name = lead.get("name", "there")
         address = lead.get("address", "")
         phone = lead.get("phone", "N/A")
-        email = lead.get("email", EMAIL_USER)
+        email = lead.get("email")
+
+        if not email:
+            continue
 
         subject = f"Quick question about {name}"
 
